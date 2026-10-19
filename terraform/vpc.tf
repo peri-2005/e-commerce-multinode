@@ -1,24 +1,31 @@
-resource "aws_vpc" "ecommerce_vpc" {
+resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
   enable_dns_support   = true
+  enable_dns_hostnames = true
   tags                 = { Name = "ecommerce-vpc" }
 }
 
-resource "aws_subnet" "public_1" {
-  vpc_id                  = aws_vpc.ecommerce_vpc.id
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+  tags   = { Name = "ecommerce-igw" }
+}
+
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
-  availability_zone       = "${var.aws_region}a"
   map_public_ip_on_launch = true
-  tags                    = { Name = "ecommerce-public-1" }
+  tags                    = { Name = "ecommerce-public-subnet" }
 }
 
-resource "aws_subnet" "private_1" {
-  vpc_id            = aws_vpc.ecommerce_vpc.id
-  cidr_block        = "10.0.10.0/24"
-  availability_zone = "${var.aws_region}a"
-  tags              = { Name = "ecommerce-private-1" }
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
 }
 
-# (Repeat subnets for availability zone 'b' to ensure High Availability)
-
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public.id
+}

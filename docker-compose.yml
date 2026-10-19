@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  user-service:
+    build: ./user-service
+    ports: [ "3001:3000" ]
+    networks: [ "ecommerce-net" ]
+
+  products-service:
+    build: ./products-service
+    ports: [ "3002:3000" ]
+    networks: [ "ecommerce-net" ]
+
+  cart-service:
+    build: ./cart-service
+    ports: [ "3003:3000" ]
+    networks: [ "ecommerce-net" ]
+
+  orders-service:
+    build: ./orders-service
+    ports: [ "3004:3000" ]
+    networks: [ "ecommerce-net" ]
+
+  frontend:
+    build: ./frontend
+    ports: [ "8080:80" ]
+    depends_on: [ user-service, products-service, cart-service, orders-service ]
+    networks: [ "ecommerce-net" ]
+
+networks:
+  ecommerce-net:
+    driver: bridge
